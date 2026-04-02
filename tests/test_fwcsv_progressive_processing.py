@@ -15,7 +15,7 @@ from tests.support.waiters import (
 )
 
 
-PROGRESSIVE_RECORD_COUNTS = (5, 50, 100)
+PROGRESSIVE_RECORD_COUNTS = (5, 50, 100, 5000, 25000)
 
 
 def _as_int(value: object) -> int:
