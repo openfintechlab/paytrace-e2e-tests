@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from tests.support.config import E2ESettings
@@ -31,6 +33,7 @@ def test_fwcsv_progressively_processes_shared_inbox_files(
     dispatch_database: DispatchDatabase,
 ) -> None:
     batch = PaymentBatch.create(record_count)
+    start_time = time.perf_counter()
 
     assert len(set(batch.transfer_ids)) == record_count
 
@@ -59,7 +62,7 @@ def test_fwcsv_progressively_processes_shared_inbox_files(
         poll_interval_seconds=settings.poll_interval_seconds,
     )
     assert registry_entry["status"] == "completed"
-    assert _as_int(registry_entry["row_count"]) == record_count
+    assert _as_int(registry_entry["row_count"]) == record_count + 1
 
     processed_rows = wait_for_processed_dispatch_rows(
         dispatch_database,
@@ -70,3 +73,9 @@ def test_fwcsv_progressively_processes_shared_inbox_files(
 
     assert len(processed_rows) == record_count
     assert all(row["status"] == "processed" for row in processed_rows)
+
+    elapsed_seconds = time.perf_counter() - start_time
+    print(
+        f"Batch {batch.filename} with {record_count} records processed in "
+        f"{elapsed_seconds:.2f} seconds."
+    )

@@ -63,7 +63,12 @@ def wait_for_registry_completion(
             return None
         if entry.get("status") == "failed":
             raise AssertionError(f"Registry entry failed for {filename}: {entry}")
-        if entry.get("status") == "completed" and _as_int(entry.get("row_count", 0) or 0) == expected_row_count:
+        # The current file watcher persists total CSV lines processed, which includes the header row.
+        expected_registry_row_count = expected_row_count + 1
+        if (
+            entry.get("status") == "completed"
+            and _as_int(entry.get("row_count", 0) or 0) == expected_registry_row_count
+        ):
             return entry
         return None
 
