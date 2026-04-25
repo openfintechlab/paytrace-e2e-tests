@@ -15,7 +15,55 @@ from tests.support.waiters import (
 )
 
 
-PROGRESSIVE_RECORD_COUNTS = (5, 50, 100, 1000)
+DEFAULT_PROGRESSIVE_RECORD_COUNTS = (5, 50, 100, 1000)
+
+
+def _parse_progressive_record_counts(raw_counts: str | None) -> tuple[int, ...]:
+    if raw_counts is None:
+        return DEFAULT_PROGRESSIVE_RECORD_COUNTS
+
+    counts: list[int] = []
+    for raw_count in raw_counts.split(","):
+        stripped_count = raw_count.strip()
+        if not stripped_count:
+            continue
+
+        try:
+            count = int(stripped_count)
+        except ValueError as exc:
+            raise pytest.UsageError(
+                "--progressive-record-counts must contain comma-separated "
+                f"integers, got {raw_count!r}."
+            ) from exc
+
+        if count <= 0:
+            raise pytest.UsageError(
+                "--progressive-record-counts values must be positive integers, "
+                f"got {count}."
+            )
+
+        counts.append(count)
+
+    if not counts:
+        raise pytest.UsageError(
+            "--progressive-record-counts must include at least one positive integer."
+        )
+
+    return tuple(counts)
+
+
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    if "record_count" not in metafunc.fixturenames:
+        return
+
+    record_counts = _parse_progressive_record_counts(
+        metafunc.config.getoption("--progressive-record-counts")
+    )
+    metafunc.parametrize(
+        "record_count",
+        record_counts,
+        ids=[f"{record_count}-records" for record_count in record_counts],
+    )
 
 
 def _as_int(value: object) -> int:
@@ -26,7 +74,6 @@ def _as_int(value: object) -> int:
     raise AssertionError(f"Expected an int-compatible value, got {type(value).__name__}.")
 
 
-@pytest.mark.parametrize("record_count", PROGRESSIVE_RECORD_COUNTS)
 def test_fwcsv_progressively_processes_shared_inbox_files(
     record_count: int,
     settings: E2ESettings,

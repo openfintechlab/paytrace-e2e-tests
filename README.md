@@ -41,6 +41,12 @@ Run the e2e test suite:
 uv run pytest tests -v
 ```
 
+Run progressive CSV checks with custom record counts:
+
+```bash
+uv run pytest tests/test_fwcsv_progressive_processing.py -v --progressive-record-counts=5,10,15
+```
+
 ## Health / Shared Path Expectations
 
 This test project does not expose HTTP health endpoints. It expects the shared
@@ -52,6 +58,6 @@ file exchange root to contain an `inbox` directory, typically:
 
 ## Current Coverage
 
-- Progressive CSV ingestion checks for `5`, `50`, and `100` records
+- Progressive CSV ingestion checks for `5`, `50`, `100`, and `1000` records by default
 - Unique `transfer_id` generation per file
 - Database verification that all rows reach `processed` status
