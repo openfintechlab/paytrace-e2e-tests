@@ -27,7 +27,15 @@ class DispatchDatabase:
     def fetch_registry_entry(self, filename: str) -> dict[str, object] | None:
         rows = self._fetch_all(
             """
-            SELECT file_id, filename, row_count, status, error_message
+            SELECT
+                file_id,
+                filename,
+                row_count,
+                status,
+                error_message,
+                response_status,
+                response_file_name,
+                response_file_generated_at
             FROM oftl_fwcsv_registry
             WHERE filename = %s
             ORDER BY updated_at DESC

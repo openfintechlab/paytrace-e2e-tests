@@ -127,3 +127,33 @@ def wait_for_processed_dispatch_rows(
         poll_interval_seconds=poll_interval_seconds,
         predicate=_predicate,
     )
+
+
+def wait_for_response_file(
+    database: DispatchDatabase,
+    *,
+    filename: str,
+    response_dir: Path,
+    timeout_seconds: float,
+    poll_interval_seconds: float,
+) -> Path:
+    def _predicate() -> Path | None:
+        entry = database.fetch_registry_entry(filename)
+        if not entry:
+            return None
+        if entry.get("status") == "FAILED":
+            raise AssertionError(f"Registry entry failed for {filename}: {entry}")
+        response_file_name = str(entry.get("response_file_name", "") or "")
+        if entry.get("response_status") != "RESP_FILE_GENERATED" or not response_file_name:
+            return None
+        response_file = response_dir / response_file_name
+        if response_file.is_file():
+            return response_file
+        return None
+
+    return wait_until(
+        description=f"response file for {filename}",
+        timeout_seconds=timeout_seconds,
+        poll_interval_seconds=poll_interval_seconds,
+        predicate=_predicate,
+    )

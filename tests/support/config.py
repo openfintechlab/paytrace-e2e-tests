@@ -34,6 +34,7 @@ class E2ESettings:
     generated_dir: Path
     fwcsv_rootdir: Path
     inbox_dir: Path
+    response_dir: Path
     db_username: str
     db_password: str
     db_host: str
@@ -57,6 +58,7 @@ class E2ESettings:
             generated_dir=project_root / ".generated",
             fwcsv_rootdir=fwcsv_rootdir,
             inbox_dir=fwcsv_rootdir / "inbox",
+            response_dir=fwcsv_rootdir / "response",
             db_username=os.environ.get("OFTL_POSTGRESDB_USERNAME", "admin"),
             db_password=os.environ.get("OFTL_POSTGRESDB_PASSWORD", ""),
             db_host=os.environ.get("OFTL_POSTGRESDB_HOST", "localhost"),

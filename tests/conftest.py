@@ -22,6 +22,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def settings() -> E2ESettings:
     loaded = E2ESettings.load()
     loaded.inbox_dir.mkdir(parents=True, exist_ok=True)
+    loaded.response_dir.mkdir(parents=True, exist_ok=True)
     loaded.generated_dir.mkdir(parents=True, exist_ok=True)
     return loaded
 

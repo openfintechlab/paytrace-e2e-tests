@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import time
 
 import pytest
@@ -12,10 +13,19 @@ from tests.support.waiters import (
     wait_for_file_to_leave_inbox,
     wait_for_processed_dispatch_rows,
     wait_for_registry_completion,
+    wait_for_response_file,
 )
 
 
 DEFAULT_PROGRESSIVE_RECORD_COUNTS = (5, 50, 100, 1000)
+RESPONSE_CSV_HEADERS = [
+    "TransferId",
+    "TransactionId",
+    "Status",
+    "ResponseCode",
+    "ResponseMessage",
+    "ProcessedTimestamp",
+]
 
 
 def _parse_progressive_record_counts(raw_counts: str | None) -> tuple[int, ...]:
@@ -120,6 +130,24 @@ def test_fwcsv_progressively_processes_shared_inbox_files(
 
     assert len(processed_rows) == record_count
     assert all(row["status"] == "PROCESSED" for row in processed_rows)
+
+    response_file = wait_for_response_file(
+        dispatch_database,
+        filename=batch.filename,
+        response_dir=settings.response_dir,
+        timeout_seconds=settings.processing_timeout_seconds,
+        poll_interval_seconds=settings.poll_interval_seconds,
+    )
+    assert response_file.parent == settings.response_dir
+
+    with response_file.open("r", encoding="utf-8", newline="") as response_handle:
+        reader = csv.DictReader(response_handle)
+        response_rows = list(reader)
+
+    assert reader.fieldnames == RESPONSE_CSV_HEADERS
+    assert len(response_rows) == record_count
+    assert {row["TransferId"] for row in response_rows} == set(batch.transfer_ids)
+    assert all(row["Status"] in {"PROCESSED", "FAILED"} for row in response_rows)
 
     elapsed_seconds = time.perf_counter() - start_time
     print(
