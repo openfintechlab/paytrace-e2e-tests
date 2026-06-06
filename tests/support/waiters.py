@@ -61,13 +61,11 @@ def wait_for_registry_completion(
         entry = database.fetch_registry_entry(filename)
         if not entry:
             return None
-        if entry.get("status") == "failed":
+        if entry.get("status") == "FAILED":
             raise AssertionError(f"Registry entry failed for {filename}: {entry}")
-        # The current file watcher persists total CSV lines processed, which includes the header row.
-        expected_registry_row_count = expected_row_count + 1
         if (
-            entry.get("status") == "completed"
-            and _as_int(entry.get("row_count", 0) or 0) == expected_registry_row_count
+            entry.get("status") == "COMPLETED"
+            and _as_int(entry.get("row_count", 0) or 0) == expected_row_count
         ):
             return entry
         return None
@@ -90,7 +88,7 @@ def wait_for_dispatch_rows(
 ) -> list[dict[str, object]]:
     def _predicate() -> list[dict[str, object]] | None:
         rows = database.fetch_dispatch_rows(transfer_ids)
-        if any(row.get("status") == "failed" for row in rows):
+        if any(row.get("status") == "FAILED" for row in rows):
             raise AssertionError(f"Dispatch rows contain failures: {rows}")
         if len(rows) == expected_count:
             return rows
@@ -115,11 +113,11 @@ def wait_for_processed_dispatch_rows(
 
     def _predicate() -> list[dict[str, object]] | None:
         rows = database.fetch_dispatch_rows(transfer_ids)
-        if any(row.get("status") == "failed" for row in rows):
+        if any(row.get("status") == "FAILED" for row in rows):
             raise AssertionError(f"Dispatch rows contain failures: {rows}")
         if len(rows) != expected_count:
             return None
-        if all(row.get("status") == "processed" for row in rows):
+        if all(row.get("status") == "PROCESSED" for row in rows):
             return rows
         return None
 

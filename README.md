@@ -3,7 +3,7 @@
 This project contains pytest-based end-to-end checks for the PayTrace file
 ingest pipeline. The first scenario validates progressive processing for CSV
 files dropped into the shared `fwcsv/inbox` directory and confirms that every
-generated `transfer_id` reaches `status='processed'` in
+generated `transfer_id` reaches `status='PROCESSED'` in
 `oftl_fwcsv_row_dispatch`.
 
 ## Prerequisites
@@ -60,4 +60,4 @@ file exchange root to contain an `inbox` directory, typically:
 
 - Progressive CSV ingestion checks for `5`, `50`, `100`, and `1000` records by default
 - Unique `transfer_id` generation per file
-- Database verification that all rows reach `processed` status
+- Database verification that all rows reach `PROCESSED` status

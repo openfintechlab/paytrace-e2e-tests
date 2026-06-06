@@ -108,8 +108,8 @@ def test_fwcsv_progressively_processes_shared_inbox_files(
         timeout_seconds=settings.processing_timeout_seconds,
         poll_interval_seconds=settings.poll_interval_seconds,
     )
-    assert registry_entry["status"] == "completed"
-    assert _as_int(registry_entry["row_count"]) == record_count + 1
+    assert registry_entry["status"] == "COMPLETED"
+    assert _as_int(registry_entry["row_count"]) == record_count
 
     processed_rows = wait_for_processed_dispatch_rows(
         dispatch_database,
@@ -119,7 +119,7 @@ def test_fwcsv_progressively_processes_shared_inbox_files(
     )
 
     assert len(processed_rows) == record_count
-    assert all(row["status"] == "processed" for row in processed_rows)
+    assert all(row["status"] == "PROCESSED" for row in processed_rows)
 
     elapsed_seconds = time.perf_counter() - start_time
     print(
